@@ -1,5 +1,8 @@
 package ru.synergy.videohost.ui;
 
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -10,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import ru.synergy.videohost.model.VideoItem;
 
 public final class PlayerDialog {
@@ -37,17 +41,46 @@ public final class PlayerDialog {
 
         Button closeButton = new Button("Закрыть");
         closeButton.getStyleClass().add("close-btn");
-        closeButton.setOnAction(event -> stage.close());
 
         VBox root = new VBox(14, title, playerStub, info, closeButton);
         root.setAlignment(Pos.TOP_CENTER);
         root.setPadding(new Insets(18));
         root.getStyleClass().add("player-root");
+        root.setOpacity(0);
+        root.setTranslateY(22);
 
         Scene scene = new Scene(root, 620, 460);
         scene.getStylesheets().add(PlayerDialog.class.getResource("/styles/styles.css").toExternalForm());
 
+        closeButton.setOnAction(event -> playCloseTransition(root, stage));
+        stage.setOnShown(event -> playOpenTransition(root));
         stage.setScene(scene);
-        stage.showAndWait();
+        stage.show();
+    }
+
+    private static void playOpenTransition(VBox root) {
+        FadeTransition fade = new FadeTransition(Duration.millis(260), root);
+        fade.setFromValue(0);
+        fade.setToValue(1);
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(260), root);
+        slide.setFromY(22);
+        slide.setToY(0);
+
+        new ParallelTransition(fade, slide).play();
+    }
+
+    private static void playCloseTransition(VBox root, Stage stage) {
+        FadeTransition fade = new FadeTransition(Duration.millis(180), root);
+        fade.setFromValue(root.getOpacity());
+        fade.setToValue(0);
+
+        TranslateTransition slide = new TranslateTransition(Duration.millis(180), root);
+        slide.setFromY(root.getTranslateY());
+        slide.setToY(14);
+
+        ParallelTransition close = new ParallelTransition(fade, slide);
+        close.setOnFinished(event -> stage.close());
+        close.play();
     }
 }

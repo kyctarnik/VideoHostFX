@@ -1,9 +1,13 @@
 package ru.synergy.videohost.ui;
 
 import java.util.List;
-
+import javafx.animation.FadeTransition;
+import javafx.animation.ParallelTransition;
+import javafx.animation.ScaleTransition;
+import javafx.animation.TranslateTransition;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -18,9 +22,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
+import javafx.util.Duration;
 import ru.synergy.videohost.model.VideoItem;
 
 public class MainView {
+
+    private static final Duration INTRO_DURATION = Duration.millis(420);
+    private static final Duration HOVER_DURATION = Duration.millis(180);
+    private static final Duration CLICK_DURATION = Duration.millis(140);
 
     private final List<VideoItem> popularVideos = List.of(
             new VideoItem("JavaFX за 15 минут", "CodeLab", "12K просмотров"),
@@ -89,9 +98,11 @@ public class MainView {
 
         FlowPane cards = new FlowPane(14, 14);
         cards.getStyleClass().add("cards-pane");
-        popularVideos.stream()
-            .map(this::createCard)
-            .forEach(cards.getChildren()::add);
+        List<VBox> cardNodes = popularVideos.stream()
+                .map(this::createCard)
+                .toList();
+        cards.getChildren().addAll(cardNodes);
+        playCardsIntro(cardNodes);
 
         content.getChildren().addAll(section, cards);
         return content;
@@ -102,7 +113,12 @@ public class MainView {
         card.setPadding(new Insets(12));
         card.setPrefWidth(230);
         card.getStyleClass().add("video-card");
-        card.setOnMouseClicked(event -> PlayerDialog.open(card.getScene().getWindow(), videoItem));
+        card.setCursor(Cursor.HAND);
+        card.setOpacity(0);
+        card.setTranslateY(26);
+        card.setOnMouseEntered(event -> animateHover(card, -6, 1.02));
+        card.setOnMouseExited(event -> animateHover(card, 0, 1.0));
+        card.setOnMouseClicked(event -> animateCardClick(card, videoItem));
 
         StackPane preview = new StackPane(new Label("Превью"));
         preview.setMinHeight(120);
@@ -119,6 +135,52 @@ public class MainView {
 
         card.getChildren().addAll(preview, titleLabel, authorLabel, statsLabel);
         return card;
+    }
+
+    private void playCardsIntro(List<VBox> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            VBox card = cards.get(i);
+
+            FadeTransition fade = new FadeTransition(INTRO_DURATION, card);
+            fade.setFromValue(0);
+            fade.setToValue(1);
+
+            TranslateTransition slide = new TranslateTransition(INTRO_DURATION, card);
+            slide.setFromY(26);
+            slide.setToY(0);
+
+            ParallelTransition animation = new ParallelTransition(fade, slide);
+            animation.setDelay(Duration.millis(i * 120.0));
+            animation.play();
+        }
+    }
+
+    private void animateHover(VBox card, double toY, double toScale) {
+        TranslateTransition move = new TranslateTransition(HOVER_DURATION, card);
+        move.setToY(toY);
+
+        ScaleTransition scale = new ScaleTransition(HOVER_DURATION, card);
+        scale.setToX(toScale);
+        scale.setToY(toScale);
+
+        new ParallelTransition(move, scale).play();
+    }
+
+    private void animateCardClick(VBox card, VideoItem videoItem) {
+        ScaleTransition clickIn = new ScaleTransition(CLICK_DURATION, card);
+        clickIn.setToX(0.97);
+        clickIn.setToY(0.97);
+
+        ScaleTransition clickOut = new ScaleTransition(CLICK_DURATION, card);
+        clickOut.setToX(1.0);
+        clickOut.setToY(1.0);
+
+        clickIn.setOnFinished(event -> {
+            clickOut.play();
+            PlayerDialog.open(card.getScene().getWindow(), videoItem);
+        });
+
+        clickIn.play();
     }
 
     private StackPane createLogo() {
