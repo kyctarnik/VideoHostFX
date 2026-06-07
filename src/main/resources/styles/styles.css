@@ -15,12 +15,12 @@
     -fx-border-width: 0 1 0 0;
 }
 
-.logo-mark {
-    -fx-background-color: #ef4444;
-    -fx-text-fill: white;
-    -fx-padding: 6 10;
-    -fx-background-radius: 8;
-    -fx-font-weight: bold;
+.logo-circle {
+    -fx-fill: #ef4444;
+}
+
+.logo-play {
+    -fx-fill: #ffffff;
 }
 
 .title {
@@ -80,4 +80,37 @@
 .video-author,
 .video-stats {
     -fx-text-fill: #cbd5e1;
+}
+
+.player-root {
+    -fx-background-color: linear-gradient(to bottom right, #111827, #0f172a);
+    -fx-font-family: "Segoe UI";
+}
+
+.player-title {
+    -fx-text-fill: #f8fafc;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.player-stub {
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #0ea5e9);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(255, 255, 255, 0.3);
+}
+
+.player-info {
+    -fx-text-fill: #cbd5e1;
+}
+
+.close-btn {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.close-btn:hover {
+    -fx-background-color: #dc2626;
 }

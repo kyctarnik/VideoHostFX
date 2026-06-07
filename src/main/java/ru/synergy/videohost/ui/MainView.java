@@ -1,5 +1,7 @@
 package ru.synergy.videohost.ui;
 
+import java.util.List;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
@@ -8,13 +10,24 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Polygon;
+import ru.synergy.videohost.model.VideoItem;
 
 public class MainView {
+
+    private final List<VideoItem> popularVideos = List.of(
+            new VideoItem("JavaFX за 15 минут", "CodeLab", "12K просмотров"),
+            new VideoItem("GitHub для новичков", "DevStart", "8K просмотров"),
+            new VideoItem("UI анимации в Java", "MotionHub", "5K просмотров"),
+            new VideoItem("Основы ООП на Java", "EasyTech", "18K просмотров")
+    );
 
     public Parent build() {
         BorderPane root = new BorderPane();
@@ -51,8 +64,7 @@ public class MainView {
         header.setPadding(new Insets(18, 24, 18, 24));
         header.getStyleClass().add("header");
 
-        Label logo = new Label("VH");
-        logo.getStyleClass().add("logo-mark");
+        StackPane logo = createLogo();
 
         Label title = new Label("VideoHostFX");
         title.getStyleClass().add("title");
@@ -75,37 +87,53 @@ public class MainView {
         Label section = new Label("Популярные видео");
         section.getStyleClass().add("section-title");
 
-        HBox cards = new HBox(14,
-                createCard("JavaFX за 15 минут", "CodeLab", "12K просмотров"),
-                createCard("GitHub для новичков", "DevStart", "8K просмотров"),
-                createCard("UI анимации в Java", "MotionHub", "5K просмотров")
-        );
+        FlowPane cards = new FlowPane(14, 14);
+        cards.getStyleClass().add("cards-pane");
+        popularVideos.stream()
+            .map(this::createCard)
+            .forEach(cards.getChildren()::add);
 
         content.getChildren().addAll(section, cards);
         return content;
     }
 
-    private VBox createCard(String title, String author, String stats) {
+    private VBox createCard(VideoItem videoItem) {
         VBox card = new VBox(8);
         card.setPadding(new Insets(12));
         card.setPrefWidth(230);
         card.getStyleClass().add("video-card");
+        card.setOnMouseClicked(event -> PlayerDialog.open(card.getScene().getWindow(), videoItem));
 
         StackPane preview = new StackPane(new Label("Превью"));
         preview.setMinHeight(120);
         preview.getStyleClass().add("video-preview");
 
-        Label titleLabel = new Label(title);
+        Label titleLabel = new Label(videoItem.title());
         titleLabel.getStyleClass().add("video-title");
 
-        Label authorLabel = new Label(author);
+        Label authorLabel = new Label(videoItem.author());
         authorLabel.getStyleClass().add("video-author");
 
-        Label statsLabel = new Label(stats);
+        Label statsLabel = new Label(videoItem.views());
         statsLabel.getStyleClass().add("video-stats");
 
         card.getChildren().addAll(preview, titleLabel, authorLabel, statsLabel);
         return card;
+    }
+
+    private StackPane createLogo() {
+        Circle circle = new Circle(16);
+        circle.getStyleClass().add("logo-circle");
+
+        Polygon play = new Polygon();
+        play.getPoints().addAll(
+                -4.0, -7.0,
+                8.0, 0.0,
+                -4.0, 7.0
+        );
+        play.getStyleClass().add("logo-play");
+
+        return new StackPane(circle, play);
     }
 
     private Button createNavButton(String text) {
